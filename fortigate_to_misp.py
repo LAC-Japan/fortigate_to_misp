@@ -99,12 +99,12 @@ def get_event(d: dict) -> MISPEvent:
     attrs.append(datetime_attr)
 
     # ip|port
-    for (key_ip, key_port) in [("srcip", "srcport"), ("dstip", "dstport")]:
+    # Payload delivery for Anti Virus, Network activity otherwise
+    c = "Payload delivery" if message_id in const.MESSAGE_ID_AV else "Network activity"
+    for (key_ip, key_port, t) in [("srcip", "srcport", "ip-src|port"), ("dstip", "dstport", "ip-dst|port")]:
         (ip, port) = (d.get(key_ip), d.get(key_port))
         if ip and port:
-            # Anti VirusならPayload delivery、それ以外はNetwork activity
-            c = "Payload delivery" if message_id in const.MESSAGE_ID_AV else "Network activity"
-            attrs.append(get_attr(c, "ip-dst|port", f"{ip}|{port}", "", [
+            attrs.append(get_attr(c, t, f"{ip}|{port}", "", [
                          f"fortigate:{key_ip}", f"fortigate:{key_port}"], False))
     # Create the content of key as attribute
     for k, v in d.items():
